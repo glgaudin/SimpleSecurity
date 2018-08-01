@@ -1,24 +1,45 @@
 package org.simplesecurity.security;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * 
  * Security related constants
  *
  */
-public interface SecurityConstants {
+public class SecurityConstants {
+	
+    @Value("${security.securitytoken}")
+	public static String HEADER_SECURITY_TOKEN;
+	
+    @Value("${security.delimiter}")
+	public static String DELIMITER;
+	
+    @Value("${security.datetimeformat}")
+	public static String DATETIME_FORMAT;
+	
+    @Value("${security.keystrategy}")
+	public static Boolean KEY_STRATEGY;
+	
+    @Value("${security.msg.invalidlogin}")
+	public static String INVALID_LOGIN;
+	
+    @Value("${security.msg.invaliduser}")
+	public static String INVALID_USER;
 
-	public static final String HEADER_SECURITY_TOKEN = "X-Token";
-	
-	public static final String DELIMITER = "^^";
-	
-	public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-	
-	public static final String INVALID_LOGIN = "Invalid login";
-	
-	public static final KeyAlgorithms KEY_ALGORITHM = KeyAlgorithms.AES;
-	
-	public static final Boolean FIXED_KEY_STRATEGY = Boolean.FALSE;
+    @Value("${security.msg.nopermission}")
+	public static String NO_PERMISSION;
 
-	public static final Boolean ROTATING_KEY_STRATEGY = Boolean.TRUE;
+    @Value("${security.msg.invalidpermission}")
+	public static String INVALID_PERMISSION;
+
+    @Value("${security.salt}")
+	public static String SALT;
+
+    public static KeyAlgorithms KEY_ALGORITHM = KeyAlgorithms.AES;
+	
+	public static Boolean FIXED_KEY_STRATEGY = Boolean.FALSE;
+
+	public static Boolean ROTATING_KEY_STRATEGY = Boolean.TRUE;
 	
 }
