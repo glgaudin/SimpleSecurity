@@ -7,6 +7,13 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Annotation to be used to secure a method.  Designed to be used at the REST level but it should work 
+ * the service level as well.
+ * 
+ * @author glgau
+ *
+ */
 @Component
 @Target(value = {ElementType.METHOD, ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)

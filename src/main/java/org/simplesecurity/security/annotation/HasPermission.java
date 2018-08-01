@@ -7,6 +7,12 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Annotation designed to check the user permissions before a method is invoked.
+ *  
+ * @author glgau
+ *
+ */
 @Component
 @Target(value = {ElementType.METHOD, ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
