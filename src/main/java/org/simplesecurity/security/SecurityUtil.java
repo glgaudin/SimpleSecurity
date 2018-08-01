@@ -10,9 +10,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.stereotype.Component;
 
 @Component("securityManager")
-public class SecurityManager {
+public class SecurityUtil {
 
-	public static Key getKey() {
+	public static Key getRandonKey() {
 		SecureRandom random = new SecureRandom();		
 		byte[] keyBytes = new byte[16];
 		random.nextBytes(keyBytes);
