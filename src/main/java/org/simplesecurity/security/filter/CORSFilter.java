@@ -10,6 +10,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * basic CORS filter
+ * 
+ */
 public class CORSFilter implements Filter{
 
 	@Override

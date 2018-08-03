@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2018 Gregg Gaudin
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package org.simplesecurity.security.service;
 
 import static org.simplesecurity.security.SecurityConstants.DATETIME_FORMAT;
@@ -38,7 +53,12 @@ import org.simplesecurity.security.SecurityUtil;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-
+/**
+ * Abstract example class of some basic security concepts.  
+ *  
+ * @author glgau
+ *
+ */
 public abstract class AbstractSecurityService implements SecurityService {
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractSecurityService.class);
@@ -48,10 +68,6 @@ public abstract class AbstractSecurityService implements SecurityService {
 	private static final Key AES_KEY = SecurityUtil.getRandonKey();
 	private static final Key TOKEN_KEY = SecurityUtil.getRandonKey();
 	
-	public AbstractSecurityService() {
-		super();
-	}
-
 	/**
 	 * Tests to see if the user is valid, and then: 
 	 * - puts the new token in the response header
@@ -160,10 +176,6 @@ public abstract class AbstractSecurityService implements SecurityService {
 	public final String getPayload(String signedToken) {
 		return getJwtPayload(signedToken, TOKEN_KEY);
 	}
-	
-	abstract SecuredUser getUser(String id);
-
-	abstract SecuredUser getUser(String userName, String encryptedPassword);
 	
 	private SecuredUser doValidate(String jwtToken) {
 		
