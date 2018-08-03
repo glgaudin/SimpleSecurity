@@ -28,8 +28,8 @@ public interface SecuredUser {
 
 	void setPassword(String password);
 
-	Set<SecuredUserAuthority> getUserAuthorities();
+	Set<SecuredUserPermission> getUserPermissions();
 
-	void setUserAuthorities(Set<SecuredUserAuthority> userAuthorities);
+	void setUserAuthorities(Set<SecuredUserPermission> userAuthorities);
 
 }

@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import org.junit.Before;
 import org.junit.Test;
 import org.simplesecurity.security.SecuredUser;
-import org.simplesecurity.security.SecuredUserAuthority;
+import org.simplesecurity.security.SecuredUserPermission;
 
 public class ContextTest {
 
@@ -152,12 +152,12 @@ public class ContextTest {
 		}
 
 		@Override
-		public Set<SecuredUserAuthority> getUserAuthorities() {
+		public Set<SecuredUserPermission> getUserPermissions() {
 			return null;
 		}
 
 		@Override
-		public void setUserAuthorities(Set<SecuredUserAuthority> userAuthorities) {
+		public void setUserAuthorities(Set<SecuredUserPermission> userAuthorities) {
 			
 		}
 
