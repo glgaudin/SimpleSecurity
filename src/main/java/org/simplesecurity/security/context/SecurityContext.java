@@ -15,7 +15,8 @@
  */
 package org.simplesecurity.security.context;
 /**
- * Static thread-safe security context class
+ * Static thread-safe security context class.  Allows for the retrieval of user information 
+ * from just about anywhere in the stack.
  *   
  * @author glgau
  *

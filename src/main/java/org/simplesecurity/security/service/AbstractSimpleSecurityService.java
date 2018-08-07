@@ -35,10 +35,10 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.simplesecurity.security.SecuredUser;
 import org.simplesecurity.security.context.SecurityContext;
 import org.simplesecurity.security.context.UserContext;
+import org.simplesecurity.security.exception.EncryptionException;
 import org.simplesecurity.security.exception.ExpiredTokenException;
 import org.simplesecurity.security.exception.InvalidTokenException;
 import org.simplesecurity.security.reponse.TokenValidationResponse;
@@ -46,7 +46,9 @@ import org.simplesecurity.security.reponse.TokenValidationResponse;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 /**
- * Abstract example class of some basic security concepts.  
+ * EXAMPLE abstract security class providing a working mechanism
+ * so we can demonstrate how the AspectJ join points work with the 
+ * annotations to allow us to secure methods with annotations.  
  *  
  * Token contains the following information:
  * 
@@ -61,8 +63,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
  */
 public abstract class AbstractSimpleSecurityService implements SecurityService {
 
-	private final static Logger LOGGER = Logger.getLogger(AbstractSimpleSecurityService.class);
-	
 	private static final long EXPIRE_MILIS = TimeUnit.MINUTES.toMillis(10);
 	
 	private static final Key TOKEN_KEY = getRandonKey();
@@ -80,11 +80,13 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 	public boolean isValidUser(HttpServletResponse httpResponse, String token) {
 
 		// validate and add new token to response
-		TokenValidationResponse validationResponse = validate(token);
+		TokenValidationResponse validationResponse = doValidate(token);
 
+		// set the user information in the security context
 		SecurityContext.setUserContext(
 				new UserContext(validationResponse.getUser(), validationResponse.getToken()));
 
+		// add the token to the response
 		httpResponse.addHeader(HEADER_SECURITY_TOKEN, validationResponse.getToken());
 		
 		return true;
@@ -98,56 +100,23 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 	}
 	
 	@Override
-	public TokenValidationResponse validate(String token) {
-
-		SecuredUser user = doValidate(token);
-		
-		if (user == null) {
-			throw new SecurityException(INVALID_LOGIN);
-		}
-
-		return createValidationResponse(user);
-	}
-
-	@Override
 	public TokenValidationResponse login(String userName, String password) throws SecurityException {
-		 // TODO: Placeholder. This needs to be thought out a bit. 
-		
+
+		// make sure we have the required info
 		if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
 			throw new SecurityException(INVALID_LOGIN);
 		}
 		
-		String encryptedPassword = hash(password);
-		SecuredUser user = getUser(userName, encryptedPassword);
+		// hash the password and get the user
+		SecuredUser user = getUser(userName, hash(password));
 
-		return createValidationResponse(user);
-		
+		// return the token validation response
+		return new TokenValidationResponse(getToken(user), user);		
 	}
 
 	@Override
 	public String getToken(SecuredUser user) {
 		return createSignedToken(createTokenPayload(user));
-	}
-	
-	@Override
-	public TokenValidationResponse renew(String token) {
-		SecuredUser user = doValidate(token);
-
-		if (user == null) {
-			throw new SecurityException(INVALID_LOGIN);
-		}
-		
-		return createValidationResponse(user);
-	}
-
-	/**
-	 * Create a signed JWT token
-	 * 
-	 * @param payload
-	 * @return
-	 */
-	public final String createSignedToken(String payload) {
-		return doCreateSignedToken(payload, TOKEN_KEY);
 	}
 	
 	/**
@@ -157,13 +126,24 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 	 * @return
 	 */
 	public final String getPayload(String signedToken) {
-		return getJwtPayload(signedToken, TOKEN_KEY);
+		return Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(signedToken).getBody().getSubject();
+	}
+	
+	/**
+	 * Create a signed JWT token
+	 * 
+	 * @param payload
+	 * @return
+	 */
+	protected final String createSignedToken(String payload) {
+		return Jwts.builder().setSubject(payload).signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact();
 	}
 	
 	protected String createTokenPayload(SecuredUser user) {
-		// remove nulls and add delimiters
-		// just use the user id in the payload... 
+
 		String payload = null;
+		
+		// just use the expiration date and user id in the payload and only create it if there's a user 
 		if (user != null && user.getId() != null) {
 			payload = new SimpleDateFormat(DATETIME_FORMAT).format(new Date()) + DELIMITER + user.getId();
 		}
@@ -172,7 +152,7 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 		
 	}
 	
-	private SecuredUser doValidate(String jwtToken) {
+	private TokenValidationResponse doValidate(String jwtToken) {
 		
 		// check the date... it's always in the second position
 		SecuredUser user = null;
@@ -180,15 +160,18 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 		String source = null;
 		
 		try {
+			// get the payload from the token
 			source = getPayload(jwtToken);
 
+			// split it, the date is first and the id is second
 			String[] sourceElements = StringUtils.split(source, DELIMITER);
 
-			if (!isValid(sourceElements[0], EXPIRE_MILIS)) {
+			if (!doIsValid(sourceElements[0], EXPIRE_MILIS)) {
 				throw new ExpiredTokenException("Expired token: " + source);
 			}
 			
 			id = sourceElements[1];
+			
 		} catch (Exception e) {
 			throw new InvalidTokenException("Invalid token: " + source);
 		}
@@ -206,24 +189,16 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 			}
 		}
 		
-		return user;
+		if (user == null) {
+			throw new SecurityException(INVALID_LOGIN);
+		}
+
+		// return the response with the user and the token
+		return new TokenValidationResponse(getToken(user), user);
+		
 	}	
 	
-	private TokenValidationResponse createValidationResponse(SecuredUser user) {
-		return new TokenValidationResponse(getToken(user), user);
-	}
-	
-
-	private final String doCreateSignedToken(String payload, Key key) {
-		return Jwts.builder().setSubject(payload).signWith(SignatureAlgorithm.HS512, key).compact();
-	}
-	
-	private final String getJwtPayload(String signedToken, Key key) {
-		// this should blow an exception if the key is invalid
-		return Jwts.parser().setSigningKey(key).parseClaimsJws(signedToken).getBody().getSubject();
-	}
-	
-	private final boolean isValid(String source, long expireMillis) {
+	private final boolean doIsValid(String source, long expireMillis) {
 		// decrypt it
 		Date tokenDate;
 		try {
@@ -232,7 +207,7 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 			// TODO Auto-generated catch block
 			throw new InvalidTokenException(e.getMessage());
 		}
-		
+		// test the date
 		return ((tokenDate.getTime() + expireMillis) > new Date().getTime());
 	}
 	
@@ -256,7 +231,7 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 			hashedValue = sb.toString();
 			
 		} catch (NoSuchAlgorithmException e) {
-			LOGGER.error(e);
+			throw new EncryptionException(e);
 		}
 		return hashedValue;
 	}

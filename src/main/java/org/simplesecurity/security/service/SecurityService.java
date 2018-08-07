@@ -46,22 +46,6 @@ public interface SecurityService {
 	String getToken(SecuredUser user);
 	
 	/**
-	 * Checks a token for validity and throws an exception if invalid
-	 * 
-	 * @param token
-	 * @return user
-	 */
-	TokenValidationResponse validate(String token);
-	
-	/**
-	 * Checks a token for validity and returns a renewed one, throws an exception if invalid
-	 * 
-	 * @param token
-	 * @return
-	 */
-	TokenValidationResponse renew(String token);
-	
-	/**
 	 * Checks creds and returns token if valid
 	 * 
 	 * @param userName
