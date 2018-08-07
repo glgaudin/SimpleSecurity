@@ -22,21 +22,16 @@ import static org.simplesecurity.security.SecurityConstants.INVALID_LOGIN;
 import static org.simplesecurity.security.SecurityConstants.KEY_ALGORITHM;
 import static org.simplesecurity.security.SecurityConstants.SALT;
 
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,29 +39,33 @@ import org.apache.log4j.Logger;
 import org.simplesecurity.security.SecuredUser;
 import org.simplesecurity.security.context.SecurityContext;
 import org.simplesecurity.security.context.UserContext;
-import org.simplesecurity.security.exception.DecryptionException;
-import org.simplesecurity.security.exception.EncryptionException;
 import org.simplesecurity.security.exception.ExpiredTokenException;
 import org.simplesecurity.security.exception.InvalidTokenException;
 import org.simplesecurity.security.reponse.TokenValidationResponse;
-import org.simplesecurity.security.SecurityUtil;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 /**
  * Abstract example class of some basic security concepts.  
  *  
+ * Token contains the following information:
+ * 
+ *     user id, date/time token was issued
+ * 
+ * and is in the following format:
+ * 
+ *     DATE_TIME^^ID
+
  * @author glgau
  *
  */
-public abstract class AbstractSecurityService implements SecurityService {
+public abstract class AbstractSimpleSecurityService implements SecurityService {
 
-	private final static Logger LOGGER = Logger.getLogger(AbstractSecurityService.class);
+	private final static Logger LOGGER = Logger.getLogger(AbstractSimpleSecurityService.class);
 	
 	private static final long EXPIRE_MILIS = TimeUnit.MINUTES.toMillis(10);
 	
-	private static final Key AES_KEY = SecurityUtil.getRandonKey();
-	private static final Key TOKEN_KEY = SecurityUtil.getRandonKey();
+	private static final Key TOKEN_KEY = getRandonKey();
 	
 	/**
 	 * Tests to see if the user is valid, and then: 
@@ -127,7 +126,7 @@ public abstract class AbstractSecurityService implements SecurityService {
 
 	@Override
 	public String getToken(SecuredUser user) {
-		return createSignedToken(encode(createTokenPayload(user)));
+		return createSignedToken(createTokenPayload(user));
 	}
 	
 	@Override
@@ -139,22 +138,6 @@ public abstract class AbstractSecurityService implements SecurityService {
 		}
 		
 		return createValidationResponse(user);
-	}
-
-	@Override
-	public String encode(String payload) {
-		return doEncode(payload, AES_KEY);
-	}
-	
-	/**
-	 * Decode the payload with the current key and key rotation strategy 
-	 * 
-	 * @param payload
-	 * @return
-	 */
-	public String decode(String payload) {
-		
-		return doDecode(payload, AES_KEY);
 	}
 
 	/**
@@ -177,26 +160,37 @@ public abstract class AbstractSecurityService implements SecurityService {
 		return getJwtPayload(signedToken, TOKEN_KEY);
 	}
 	
+	protected String createTokenPayload(SecuredUser user) {
+		// remove nulls and add delimiters
+		// just use the user id in the payload... 
+		String payload = null;
+		if (user != null && user.getId() != null) {
+			payload = new SimpleDateFormat(DATETIME_FORMAT).format(new Date()) + DELIMITER + user.getId();
+		}
+		
+		return payload;
+		
+	}
+	
 	private SecuredUser doValidate(String jwtToken) {
 		
 		// check the date... it's always in the second position
 		SecuredUser user = null;
 		String id = null;
-		String token = null;
+		String source = null;
 		
 		try {
-			token = getPayload(jwtToken);
+			source = getPayload(jwtToken);
 
-			// decrypt it - token ends up as UUID^^DATE_TIME^^ID
-			String source = decode(token);
 			String[] sourceElements = StringUtils.split(source, DELIMITER);
-			
-			id = sourceElements[2];
-			if (!isValid(sourceElements, EXPIRE_MILIS)) {
-				throw new ExpiredTokenException("Expired token: " + token);
+
+			if (!isValid(sourceElements[0], EXPIRE_MILIS)) {
+				throw new ExpiredTokenException("Expired token: " + source);
 			}
+			
+			id = sourceElements[1];
 		} catch (Exception e) {
-			throw new InvalidTokenException("Invalid token: " + token);
+			throw new InvalidTokenException("Invalid token: " + source);
 		}
 		
 		// now make sure the user is valid
@@ -215,52 +209,11 @@ public abstract class AbstractSecurityService implements SecurityService {
 		return user;
 	}	
 	
-	private String createTokenPayload(SecuredUser user) {
-		// remove nulls and add delimiters
-		// just use the user id in the payload... 
-		String payload = null;
-		if (user != null && user.getId() != null) {
-			payload = UUID.randomUUID().toString() + DELIMITER + // just push the date over one place so we always know where it is 
-					new SimpleDateFormat(DATETIME_FORMAT).format(new Date()) + DELIMITER + user.getId();  //TODO: change to timestamp
-		}
-		
-		return payload;
-		
-	}
-	
 	private TokenValidationResponse createValidationResponse(SecuredUser user) {
 		return new TokenValidationResponse(getToken(user), user);
 	}
 	
 
-	private final String doEncode(String payload, Key key) {
-		
-		try {
-			Cipher cipher = Cipher.getInstance(KEY_ALGORITHM.toString());
-			cipher.init(Cipher.ENCRYPT_MODE, key);
-			
-			return Base64.getEncoder().encodeToString(cipher.doFinal(payload.getBytes()));
-			
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | 
-				IllegalBlockSizeException | InvalidKeyException |
-				BadPaddingException e) {
-			throw new EncryptionException("Encryption error: " + e.getMessage());
-		}
-	}
-	
-	private final String doDecode(String payload, Key key) {
-		try {
-			Cipher cipher = Cipher.getInstance(KEY_ALGORITHM.toString());
-			cipher.init(Cipher.DECRYPT_MODE, key);
-			return new String(cipher.doFinal(Base64.getDecoder().decode(payload)));
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | 
-				IllegalBlockSizeException | InvalidKeyException |
-				BadPaddingException e) {
-			
-			throw new DecryptionException("Decryption error: " + e.getMessage());
-		}
-	}
-	
 	private final String doCreateSignedToken(String payload, Key key) {
 		return Jwts.builder().setSubject(payload).signWith(SignatureAlgorithm.HS512, key).compact();
 	}
@@ -270,14 +223,14 @@ public abstract class AbstractSecurityService implements SecurityService {
 		return Jwts.parser().setSigningKey(key).parseClaimsJws(signedToken).getBody().getSubject();
 	}
 	
-	private final boolean isValid(String[] sourceElements, long expireMillis) {
+	private final boolean isValid(String source, long expireMillis) {
 		// decrypt it
 		Date tokenDate;
 		try {
-			tokenDate = new SimpleDateFormat(DATETIME_FORMAT).parse(sourceElements[1]);
+			tokenDate = new SimpleDateFormat(DATETIME_FORMAT).parse(source);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
-			throw new RuntimeException(e.getMessage());
+			throw new InvalidTokenException(e.getMessage());
 		}
 		
 		return ((tokenDate.getTime() + expireMillis) > new Date().getTime());
@@ -306,6 +259,13 @@ public abstract class AbstractSecurityService implements SecurityService {
 			LOGGER.error(e);
 		}
 		return hashedValue;
+	}
+	
+	static Key getRandonKey() {
+		SecureRandom random = new SecureRandom();		
+		byte[] keyBytes = new byte[16];
+		random.nextBytes(keyBytes);
+		return new SecretKeySpec(keyBytes, KEY_ALGORITHM.toString());
 	}
 	
 }

@@ -24,14 +24,6 @@ import org.simplesecurity.security.reponse.TokenValidationResponse;
 /**
  * Security service that manages tokens and such for a user
  * 
- * Token contains the following information:
- * 
- *     user id, date/time token was issued
- * 
- * and is in the following format:
- * 
- *     RANDOM UUID^^DATE_TIME^^ID
- * 
  * @author G
  *
  */
@@ -78,14 +70,6 @@ public interface SecurityService {
 	 */
 	TokenValidationResponse login(String userName, String password) throws SecurityException;
 
-	/**
-	 * Encode the payload with the current key and key rotation strategy.
-	 * 
-	 * @param payload
-	 * @return
-	 */
-	String encode(String payload);
-	
 	/**
 	 * Hash a string with the current salt.
 	 * 
