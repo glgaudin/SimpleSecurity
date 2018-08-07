@@ -104,28 +104,72 @@ public class UserContext {
 	 */
 	public void hasPermission(String permission) {
 
-		// no permission requested
-		if (StringUtils.isBlank(permission)) {
-			throw new PermissionException(INVALID_PERMISSION);
-		}
-		// no user in context
-		if (user == null) {
-			throw new SecurityException(INVALID_USER);
-		}
-
 		// user has no permissions
 		if (user.getUserPermissions() == null || user.getUserPermissions().size() < 1) {
 			throw new PermissionException(NO_PERMISSION);
 		}
 		
+		// no permission requested
+		if (StringUtils.isBlank(permission)) {
+			throw new PermissionException(INVALID_PERMISSION);
+		}
+
+		// no user in context
+		if (user == null) {
+			throw new SecurityException(INVALID_USER);
+		}
+
+		// check the permissions
+		if (!doHasPermission(permission)) {
+			// user does not have the permission requested
+			throw new PermissionException(NO_PERMISSION);
+		}
+	}
+	
+	/**
+	 * check to see if the user has the supplied permission
+	 * 
+	 * @param permission
+	 */
+	public void hasPermissions(String[] permissions) {
+
+		// user has no permissions
+		if (user.getUserPermissions() == null || user.getUserPermissions().size() < 1) {
+			throw new PermissionException(NO_PERMISSION);
+		}
+
+		// user has no permissions
+		if (permissions == null || permissions.length < 1) {
+			throw new PermissionException(NO_PERMISSION);
+		}
+		
+		// check the permissions
+		if (!doHasPermissions(permissions)) {
+			// user does not have the permission requested
+			throw new PermissionException(NO_PERMISSION);
+		}
+		
+	}
+
+	
+	private boolean doHasPermissions(String[] permissions) {
+		for (String permission: permissions) {
+			if (!doHasPermission(permission)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean doHasPermission(String permission) {
+
 		// check the permissions
 		for (SecuredUserPermission p: user.getUserPermissions()) {
 			if (p != null && permission.equals(p.getPermission())) {
-				return;
+				return true;
 			}
 		}
-
-		// user does not have the permission requested
-		throw new PermissionException(NO_PERMISSION);
+		
+		return false;
 	}
 }

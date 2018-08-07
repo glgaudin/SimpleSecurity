@@ -28,7 +28,7 @@ import javax.crypto.spec.SecretKeySpec;
  *
  */
 public class SecurityUtil {
-
+	// TODO:  move to a default method in SecurityService
 	public static Key getRandonKey() {
 		SecureRandom random = new SecureRandom();		
 		byte[] keyBytes = new byte[16];

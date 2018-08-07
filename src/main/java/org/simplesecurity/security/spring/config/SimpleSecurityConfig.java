@@ -1,7 +1,7 @@
 package org.simplesecurity.security.spring.config;
 
 import org.simplesecurity.security.aspect.HasPermissionAspect;
-import org.simplesecurity.security.aspect.SecurityAspect;
+import org.simplesecurity.security.aspect.ValidateTokenAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,7 @@ public class SimpleSecurityConfig {
 	 * @return
 	 */
  	@Bean
-	public SecurityAspect securityAspect() {
-		return new SecurityAspect();
+	public ValidateTokenAspect securityAspect() {
+		return new ValidateTokenAspect();
 	}
 }

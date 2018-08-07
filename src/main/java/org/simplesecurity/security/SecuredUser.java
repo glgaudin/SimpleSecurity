@@ -40,48 +40,6 @@ public interface SecuredUser {
 	void setId(Integer id);
 	
 	/**
-	 * return the first name
-	 * 
-	 * @return
-	 */
-	String getFirstName();
-
-	/**
-	 * set the first name
-	 * 
-	 * @param firstName
-	 */
-	void setFirstName(String firstName);
-
-	/**
-	 * return the last name
-	 * 
-	 * @return
-	 */
-	String getLastName();
-
-	/**
-	 * set the last name
-	 * 
-	 * @param lastName
-	 */
-	void setLastName(String lastName);
-
-	/**
-	 * return the email address
-	 * 
-	 * @return
-	 */
-	String getEmail();
-
-	/**
-	 * set the email address
-	 * 
-	 * @param email
-	 */
-	void setEmail(String email);
-
-	/**
 	 * return the username
 	 * 
 	 * @return

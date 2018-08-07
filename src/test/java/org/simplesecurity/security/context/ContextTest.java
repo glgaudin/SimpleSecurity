@@ -33,11 +33,11 @@ public class ContextTest {
 				try {
 					System.err.println("starting thread one");
 					Thread.sleep(2000);
-					assertThat(USER1, is(SecurityContext.getUserContext().getUser().getFirstName()));
-					System.err.println("thread 1 " + SecurityContext.getUserContext().getUser().getFirstName());
+					assertThat(USER1, is(SecurityContext.getUserContext().getUser().getUsername()));
+					System.err.println("thread 1 " + SecurityContext.getUserContext().getUser().getUsername());
 					Thread.sleep(8000);
-					assertThat(USER1, is(SecurityContext.getUserContext().getUser().getFirstName()));
-					System.err.println("thread 1 " + SecurityContext.getUserContext().getUser().getFirstName());
+					assertThat(USER1, is(SecurityContext.getUserContext().getUser().getUsername()));
+					System.err.println("thread 1 " + SecurityContext.getUserContext().getUser().getUsername());
 					
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -55,11 +55,11 @@ public class ContextTest {
 				try {
 					
 					System.err.println("starting thread two");
-					assertThat(USER2, is(SecurityContext.getUserContext().getUser().getFirstName()));
-					System.err.println("thread 2 " + SecurityContext.getUserContext().getUser().getFirstName());
+					assertThat(USER2, is(SecurityContext.getUserContext().getUser().getUsername()));
+					System.err.println("thread 2 " + SecurityContext.getUserContext().getUser().getUsername());
 					Thread.sleep(3000);
-					assertThat(USER2, is(SecurityContext.getUserContext().getUser().getFirstName()));
-					System.err.println("thread 2 " + SecurityContext.getUserContext().getUser().getFirstName());
+					assertThat(USER2, is(SecurityContext.getUserContext().getUser().getUsername()));
+					System.err.println("thread 2 " + SecurityContext.getUserContext().getUser().getUsername());
 					
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -83,8 +83,8 @@ public class ContextTest {
 		User user1 = new User();
 		User user2 = new User();
 
-		user1.setFirstName(USER1);
-		user2.setFirstName(USER2);
+		user1.setUsername(USER1);
+		user2.setUsername(USER2);
 
 		u1.setUser(user1);
 		u2.setUser(user2);
@@ -92,39 +92,10 @@ public class ContextTest {
 
 	private class User implements SecuredUser {
 		
-		private String firstName;
-
-		private String lastName;
-
-		private String email;
-
 		private String username;
 
 		private String password;
 		
-		public String getFirstName() {
-			return firstName;
-		}
-
-		public void setFirstName(String firstName) {
-			this.firstName = firstName;
-		}
-
-		public String getLastName() {
-			return lastName;
-		}
-
-		public void setLastName(String lastName) {
-			this.lastName = lastName;
-		}
-
-		public String getEmail() {
-			return email;
-		}
-
-		public void setEmail(String email) {
-			this.email = email;
-		}
 
 		public String getUsername() {
 			return username;

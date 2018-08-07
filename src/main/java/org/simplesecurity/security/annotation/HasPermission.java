@@ -33,5 +33,5 @@ import org.springframework.stereotype.Component;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface HasPermission {
 
-	String permission();
+	String[] permissions();
 }

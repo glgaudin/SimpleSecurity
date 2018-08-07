@@ -32,6 +32,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Target(value = {ElementType.METHOD, ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface Secure {
-
+public @interface ValidateToken {
+	String[] permissions() default {};
 }

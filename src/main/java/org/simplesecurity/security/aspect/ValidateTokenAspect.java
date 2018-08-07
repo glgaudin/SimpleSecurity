@@ -17,14 +17,21 @@ package org.simplesecurity.security.aspect;
 
 import static org.simplesecurity.security.SecurityConstants.HEADER_SECURITY_TOKEN;
 
+import java.lang.reflect.Method;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.simplesecurity.security.annotation.HasPermission;
+import org.simplesecurity.security.annotation.ValidateToken;
+import org.simplesecurity.security.context.SecurityContext;
 import org.simplesecurity.security.reponse.TokenValidationResponse;
 import org.simplesecurity.security.service.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 /**
  * Aspect that works in conjunction with the Secure annotation to validate a user's token
@@ -35,19 +42,29 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Aspect
-public class SecurityAspect {
+@Order(2)
+public class ValidateTokenAspect {
 	@Autowired
 	private SecurityService securityService;
 
-	@Before(value = "@annotation(org.simplesecurity.security.annotation.Secure) && execution(* *(..))")
+	@Before(value = "@annotation(org.simplesecurity.security.annotation.ValidateToken) && execution(* *(..))")
 	public void before(JoinPoint joinPoint) throws Throwable {
 		HttpServletResponse httpResponse = (HttpServletResponse) joinPoint.getArgs()[0];
 		String token = (String) joinPoint.getArgs()[1];
 
 		// validate and add new token to response
-		TokenValidationResponse validationResponse = securityService.validate(token);
-		httpResponse.addHeader(HEADER_SECURITY_TOKEN, validationResponse.getToken());
+		securityService.isValidUser(httpResponse, token);
+		
+		// permissions are optional, only check if they exist
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+	    Method method = signature.getMethod();
 
+	    ValidateToken annotation = method.getAnnotation(ValidateToken.class);
+
+	    if (annotation.permissions() != null && annotation.permissions().length > 0) {
+	    	SecurityContext.getUserContext().hasPermissions(annotation.permissions());
+	    }
+		
 	}
 
 }
