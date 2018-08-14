@@ -128,9 +128,8 @@ public class ContextTest {
 		}
 
 		@Override
-		public void setUserAuthorities(Set<SecuredUserPermission> userAuthorities) {
+		public void setUserPermissions(Set<? extends SecuredUserPermission> userPermissions) {
 			
 		}
-
 	}
 }

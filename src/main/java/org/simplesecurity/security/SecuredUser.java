@@ -72,13 +72,13 @@ public interface SecuredUser {
 	 * 
 	 * @return
 	 */
-	Set<SecuredUserPermission> getUserPermissions();
+	Set<? extends SecuredUserPermission> getUserPermissions();
 
 	/**
 	 * set the set of permissions for the user
 	 * 
-	 * @param userAuthorities
+	 * @param userPermissions
 	 */
-	void setUserAuthorities(Set<SecuredUserPermission> userAuthorities);
+	void setUserPermissions(Set<? extends SecuredUserPermission> userPermissions);
 
 }
