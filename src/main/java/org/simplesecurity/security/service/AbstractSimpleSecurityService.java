@@ -181,7 +181,7 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 			try {
 		
 				if (StringUtils.isNoneBlank(id)) {
-					user = getUser(id);
+					user = getUser(Integer.parseInt(id));
 				}
 			} catch (Exception e) {
 				// just set the user to null and fall through to an invalid login 

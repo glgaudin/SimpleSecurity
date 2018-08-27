@@ -68,7 +68,7 @@ public interface SecurityService {
 	 * @param id
 	 * @return
 	 */
-	SecuredUser getUser(String id);
+	SecuredUser getUser(Integer id);
 
 	/**
 	 * get the user matching the supplied user name and password
