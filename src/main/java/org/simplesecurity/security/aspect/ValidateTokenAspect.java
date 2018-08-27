@@ -15,8 +15,6 @@
  */
 package org.simplesecurity.security.aspect;
 
-import static org.simplesecurity.security.SecurityConstants.HEADER_SECURITY_TOKEN;
-
 import java.lang.reflect.Method;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,10 +23,8 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.simplesecurity.security.annotation.HasPermission;
 import org.simplesecurity.security.annotation.ValidateToken;
 import org.simplesecurity.security.context.SecurityContext;
-import org.simplesecurity.security.reponse.TokenValidationResponse;
 import org.simplesecurity.security.service.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
