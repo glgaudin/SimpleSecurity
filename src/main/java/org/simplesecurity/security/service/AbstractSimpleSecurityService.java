@@ -109,6 +109,10 @@ public abstract class AbstractSimpleSecurityService implements SecurityService {
 		
 		// hash the password and get the user
 		SecuredUser user = getUser(userName, hash(password));
+		
+		if (user == null) {
+			throw new SecurityException(INVALID_LOGIN);
+		}
 
 		// return the token validation response
 		return new TokenValidationResponse(getToken(user), user);		
